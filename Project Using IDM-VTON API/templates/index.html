@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Try-On System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success-color: #16a34a;
+            --success-hover: #15803d;
+            --error-color: #dc2626;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --border-color: #e5e7eb;
+            --bg-color: #f3f4f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: var(--primary-color);
+        }
+
+        input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .preview-container {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .preview-container img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: var(--success-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Modern Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Result and Error Messages */
+        #result, #error {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        #result.visible, #error.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #result img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #error {
+            color: var(--error-color);
+            text-align: center;
+            padding: 1rem;
+            background-color: #fee2e2;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .preview-container img {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Virtual Try-On System</h1>
+        
+        <div class="card">
+            <form id="tryonForm">
+                <div class="form-group">
+                    <label for="person_img">Person Image</label>
+                    <input type="file" id="person_img" name="person_img" accept="image/*" required>
+                    <div id="personPreview" class="preview-container">
+                        <img src="" alt="Person preview">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cloth_img">Clothing Image</label>
+                    <input type="file" id="cloth_img" name="cloth_img" accept="image/*" required>
+                    <div id="clothPreview" class="preview-container">
+                        <img src="" alt="Clothing preview">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Try On</button>
+            </form>
+
+            <button id="demoButton" class="btn btn-success">Try Demo</button>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="text-center">
+                    <p>Processing your images... This may take a few moments.</p>
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <div id="result" class="mt-6">
+                <h2 class="text-lg font-semibold mb-2">Result:</h2>
+                <img id="resultImage" src="" alt="Try-on result">
+            </div>
+
+            <div id="error"></div>
+        </div>
+    </div>
+
+    <script>
+        // Preview uploaded images
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const previewImg = preview.querySelector('img');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Set up image preview listeners
+        document.querySelector('input[name="person_img"]').addEventListener('change', function() {
+            previewImage(this, 'personPreview');
+        });
+        
+        document.querySelector('input[name="cloth_img"]').addEventListener('change', function() {
+            previewImage(this, 'clothPreview');
+        });
+
+        // Form submission
+        document.getElementById('tryonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('person_img', e.target.person_img.files[0]);
+            formData.append('cloth_img', e.target.cloth_img.files[0]);
+
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const resultImage = document.getElementById('resultImage');
+            
+            try {
+                // Show loading state
+                submitButton.disabled = true;
+                loadingDiv.style.display = 'flex';
+                resultDiv.classList.remove('visible');
+                errorDiv.classList.remove('visible');
+                
+                const response = await fetch('/tryon', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.status === 'success' && data.result_url) {
+                    resultImage.src = data.result_url;
+                    resultImage.onload = () => {
+                        loadingDiv.style.display = 'none';
+                        resultDiv.classList.add('visible');
+                    };
+                    resultImage.onerror = () => {
+                        throw new Error('Failed to load result image');
+                    };
+                } else {
+                    throw new Error(data.message || 'Failed to process images');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = error.message || 'An error occurred while processing your request.';
+                errorDiv.classList.add('visible');
+                loadingDiv.style.display = 'none';
+                resultDiv.classList.remove('visible');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        // Demo button functionality
+        document.getElementById('demoButton').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const demoButton = document.getElementById('demoButton');
+            const resultImage = document.getElementById('resultImage');
+            
+            try {
+                // Show loading state
+                demoButton.disabled = true;
+                loadingDiv.style.display = 'flex';
+                resultDiv.classList.remove('visible');
+                errorDiv.classList.remove('visible');
+                
+                const response = await fetch('/demo');
+                const data = await response.json();
+                console.log('Demo response data:', data);
+                
+                if (data.status === 'success' && data.result_url) {
+                    resultImage.src = data.result_url;
+                    resultImage.onload = () => {
+                        loadingDiv.style.display = 'none';
+                        resultDiv.classList.add('visible');
+                    };
+                    resultImage.onerror = () => {
+                        throw new Error('Failed to load demo result image');
+                    };
+                } else {
+                    throw new Error(data.message || 'Failed to process demo images');
+                }
+            } catch (error) {
+                console.error('Demo error:', error);
+                errorDiv.textContent = error.message || 'An error occurred while processing the demo.';
+                errorDiv.classList.add('visible');
+                loadingDiv.style.display = 'none';
+                resultDiv.classList.remove('visible');
+            } finally {
+                demoButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html> 
